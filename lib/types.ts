@@ -1,6 +1,7 @@
 export type PropertyStatus = 'nou' | 'rezervat' | 'vandut' | 'inchiriat' | 'disponibil';
 export type PropertyType = 'apartament' | 'casa' | 'teren' | 'penthouse' | 'vila';
 export type Currency = 'EUR' | 'RON';
+export type ListingType = 'vanzare' | 'inchiriat';
 
 export interface Property {
   id: string;
@@ -12,9 +13,10 @@ export interface Property {
   price: number;
   currency: Currency;
   type: PropertyType;
+  listing_type: ListingType;
   status: PropertyStatus;
   location: string;
-  area: number;          // sqm
+  area: number;
   rooms: number;
   bathrooms: number;
   floor?: string;

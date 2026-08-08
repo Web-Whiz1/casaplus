@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { DEMO_PROPERTIES } from '@/lib/demo-properties';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { translateRoToEn } from '@/lib/translate';
 
-const safeDemo = DEMO_PROPERTIES;
+function validateBody(body = {}) {
+  const errors = [];
+  if (!body.title || !String(body.title).trim()) errors.push('title is required');
+  if (!body.slug || !String(body.slug).trim()) errors.push('slug is required');
+  if (!body.location || !String(body.location).trim()) errors.push('location is required');
+  if (!body.cover_image || !String(body.cover_image).trim()) errors.push('cover_image is required');
+  if (errors.length) throw new Error(errors.join(', '));
+}
 
 function normalizeBody(body = {}) {
   const now = new Date().toISOString();
+  validateBody(body);
   const payload = {
     id: body.id || cryptoId(),
     slug: body.slug || slugify(body.title || 'property'),
@@ -16,6 +24,7 @@ function normalizeBody(body = {}) {
     price: Number(body.price || 0),
     currency: body.currency || 'EUR',
     type: body.type || 'apartament',
+    listing_type: body.listing_type || 'vanzare',
     status: body.status || 'disponibil',
     location: body.location || 'Iași, Romania',
     area: Number(body.area || 0),
@@ -29,14 +38,23 @@ function normalizeBody(body = {}) {
     storage: Boolean(body.storage),
     latitude: body.latitude || null,
     longitude: body.longitude || null,
-    cover_image: body.cover_image || safeDemo[0]?.cover_image || '',
-    gallery: Array.isArray(body.gallery) ? body.gallery : (body.cover_image ? [body.cover_image] : []),
+    cover_image: body.cover_image || '',
+    gallery: Array.isArray(body.gallery) ? body.gallery.filter(url => url !== body.cover_image) : (body.cover_image ? [body.cover_image] : []),
     featured: Boolean(body.featured),
     published: body.published ?? true,
     created_at: body.created_at || now,
   };
 
   return payload;
+}
+
+async function enrichWithTranslations(payload) {
+  const [titleEn, descEn] = await Promise.all([
+    payload.title_en ? Promise.resolve(payload.title_en) : translateRoToEn(payload.title),
+    payload.description_en ? Promise.resolve(payload.description_en) : translateRoToEn(payload.description),
+  ]);
+
+  return { ...payload, title_en: titleEn, description_en: descEn };
 }
 
 function cryptoId() {
@@ -55,17 +73,14 @@ function slugify(value) {
 }
 
 async function fetchAll() {
-  try {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('*')
-      .eq('published', true)
-      .order('created_at', { ascending: false });
+  const { data, error } = await supabaseAdmin
+    .from('properties')
+    .select('*')
+    .eq('published', true)
+    .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    if (data && data.length) return data;
-  } catch {}
-  return safeDemo;
+  if (error) throw error;
+  return data || [];
 }
 
 export async function GET(request, { params }) {
@@ -89,7 +104,18 @@ export async function GET(request, { params }) {
     }
 
     const slug = path[1];
-    const one = all.find(p => p.slug === slug);
+    let one = all.find(p => p.slug === slug);
+    if (!one) {
+      try {
+        const { data, error } = await supabaseAdmin
+          .from('properties')
+          .select('*')
+          .eq('slug', slug)
+          .eq('published', true)
+          .single();
+        if (!error && data) one = data;
+      } catch {}
+    }
     if (!one) return NextResponse.json({ error: 'not found' }, { status: 404 });
     return NextResponse.json({ data: one });
   }
@@ -101,10 +127,11 @@ export async function POST(request) {
   try {
     const body = await request.json();
     const payload = normalizeBody(body);
+    const enriched = await enrichWithTranslations(payload);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('properties')
-      .insert([payload])
+      .insert([enriched])
       .select('*')
       .single();
 
@@ -122,10 +149,11 @@ export async function PUT(request) {
     if (!body?.id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
     const payload = normalizeBody(body);
+    const enriched = await enrichWithTranslations(payload);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('properties')
-      .update(payload)
+      .update(enriched)
       .eq('id', payload.id)
       .select('*')
       .single();
@@ -144,7 +172,7 @@ export async function DELETE(request) {
     const id = body?.id;
     if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('properties')
       .delete()
       .eq('id', id);

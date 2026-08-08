@@ -5,7 +5,6 @@ import { useLang } from '@/lib/i18n';
 
 export function Footer() {
   const { t } = useLang();
-  const year = new Date().getFullYear();
 
   return (
     <footer className="bg-ink text-white/80 mt-32">
@@ -33,8 +32,8 @@ export function Footer() {
           <ul className="space-y-3 text-sm text-white/70">
             <li className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 text-gold" /><span>Strada Eternitate nr. 30<br/>Iași, România</span></li>
             <li className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 text-gold" /><span>Piața Unirii nr. 2, Iași</span></li>
-            <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40787860899" className="hover:text-gold">+40 787 860 899</a></li>
-            <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40743864000" className="hover:text-gold">+40 743 864 000</a></li>
+            <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40743864000" className="hover:text-gold">Gabriel — +40 743 864 000</a></li>
+            <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40787860899" className="hover:text-gold">Alex — +40 787 860 899</a></li>
           </ul>
         </div>
 
@@ -55,7 +54,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container-lux py-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-white/50">
-          <div>© 2013–{year} CasaPlus • BBC EDIL INTERMED SRL • CUI 36790717 • J22/2526/2016</div>
+          <div>© 2026 CasaPlus</div>
           <div>{t('footer.rights')}</div>
         </div>
       </div>

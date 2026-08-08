@@ -13,6 +13,11 @@ const statusStyles: Record<string, string> = {
   disponibil: 'bg-white text-ink border border-ink',
 };
 
+const listingTypeStyles: Record<string, string> = {
+  vanzare: 'bg-gold text-white',
+  inchiriat: 'bg-ink text-white',
+};
+
 export function PropertyCard({ property, priority = false }: { property: Property; priority?: boolean }) {
   const { t, lang } = useLang();
   const title = lang === 'en' && property.title_en ? property.title_en : property.title;
@@ -30,6 +35,9 @@ export function PropertyCard({ property, priority = false }: { property: Propert
             priority={priority}
           />
           <div className="absolute top-5 left-5 flex items-center gap-2">
+            <span className={`text-[10px] uppercase tracking-[0.2em] px-3 py-1.5 ${listingTypeStyles[property.listing_type] || listingTypeStyles.vanzare}`}>
+              {t(`listing_type.${property.listing_type}`)}
+            </span>
             <span className={`text-[10px] uppercase tracking-[0.2em] px-3 py-1.5 ${statusStyles[property.status] || statusStyles.disponibil}`}>
               {t(`status.${property.status}`)}
             </span>

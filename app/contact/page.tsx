@@ -30,9 +30,15 @@ export default function ContactPage() {
           </div>
           <div className="border border-line bg-white p-8">
             <div className="flex items-center gap-2 text-gold mb-4"><Phone size={18} /><span className="eyebrow">{t('contact.phones')}</span></div>
-            <div className="text-ink leading-relaxed">
-              <a href="tel:+40787860899" className="block hover:text-gold">+40 787 860 899</a>
-              <a href="tel:+40743864000" className="block hover:text-gold mt-2">+40 743 864 000</a>
+            <div className="text-ink leading-relaxed space-y-2">
+              <div>
+                <a href="tel:+40743864000" className="block hover:text-gold font-medium">+40 743 864 000</a>
+                <span className="text-[11px] text-muted uppercase tracking-[0.2em]">Gabriel</span>
+              </div>
+              <div>
+                <a href="tel:+40787860899" className="block hover:text-gold font-medium">+40 787 860 899</a>
+                <span className="text-[11px] text-muted uppercase tracking-[0.2em]">Alex</span>
+              </div>
             </div>
           </div>
           <div className="border border-line bg-white p-8">
@@ -43,10 +49,20 @@ export default function ContactPage() {
       </section>
 
       <section className="pb-16 md:pb-24">
-        <div className="container-lux flex flex-wrap gap-4">
-          <a href="tel:+40787860899" className="btn-gold"><Phone size={16} /> {t('contact.callNow')}</a>
+        <div className="container-lux grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+          <div className="space-y-3">
+            <div className="text-[11px] uppercase tracking-[0.25em] text-muted mb-2">Gabriel</div>
+            <a href="tel:+40743864000" className="btn-gold w-full justify-center"><Phone size={16} /> +40 743 864 000</a>
+            <a href="https://wa.me/40743864000" target="_blank" rel="noopener" className="btn-outline w-full justify-center">WhatsApp</a>
+          </div>
+          <div className="space-y-3">
+            <div className="text-[11px] uppercase tracking-[0.25em] text-muted mb-2">Alex</div>
+            <a href="tel:+40787860899" className="btn-gold w-full justify-center"><Phone size={16} /> +40 787 860 899</a>
+            <a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="btn-outline w-full justify-center">WhatsApp</a>
+          </div>
+        </div>
+        <div className="container-lux flex flex-wrap gap-4 mt-8">
           <a href={mapsUrl} target="_blank" rel="noopener" className="btn-outline"><MapPin size={16} /> {t('contact.openMaps')}</a>
-          <a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="btn-outline">WhatsApp</a>
           <a href="https://www.instagram.com/casaplusagentie/" target="_blank" rel="noopener" className="btn-outline"><Instagram size={16} /> Instagram</a>
         </div>
       </section>

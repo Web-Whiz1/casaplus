@@ -1,32 +1,71 @@
 'use client';
+
 import { useEffect, useState, use } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { MapPin, Maximize2, BedDouble, Bath, Building2, Calendar, Flame, Car, Trees, Package, Phone, Share2, ArrowLeft, X } from 'lucide-react';
+import { MapPin, Maximize2, BedDouble, Bath, Building2, Calendar, Flame, Car, Trees, Package, Phone, Share2, ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang, formatPrice } from '@/lib/i18n';
 import { PropertyCard } from '@/components/site/PropertyCard';
 import { Property } from '@/lib/types';
-import { DEMO_PROPERTIES } from '@/lib/demo-properties';
 import { toast } from 'sonner';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const { t, lang } = useLang();
-  const [property, setProperty] = useState<Property | null>(() => DEMO_PROPERTIES.find(p => p.slug === slug) || null);
+  const [property, setProperty] = useState<Property | null>(null);
+  const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [similar, setSimilar] = useState<Property[]>([]);
 
   useEffect(() => {
-    fetch(`/api/properties/${slug}`).then(r => r.json()).then(d => {
-      if (d?.data) setProperty(d.data);
-    }).catch(() => {});
+    setLoading(true);
+    fetch(`/api/properties/${slug}`).then(r => {
+      if (!r.ok) throw new Error('not found');
+      return r.json();
+    }).then(d => {
+      setProperty(d?.data || null);
+    }).catch(() => {
+      setProperty(null);
+    }).finally(() => {
+      setLoading(false);
+    });
   }, [slug]);
+
+  useEffect(() => {
+    if (!property) return;
+    fetch('/api/properties')
+      .then(r => r.json())
+      .then(d => {
+        const all = d?.data || [];
+        setSimilar(all.filter((p: Property) => p.id !== property.id && p.type === property.type).slice(0, 3));
+      })
+      .catch(() => {});
+  }, [property?.id, property?.type]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (lightbox === null) return;
+      if (e.key === 'Escape') setLightbox(null);
+      if (e.key === 'ArrowLeft') setLightbox((lightbox - 1 + property.gallery.length + 1) % (property.gallery.length + 1));
+      if (e.key === 'ArrowRight') setLightbox((lightbox + 1) % (property.gallery.length + 1));
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [lightbox, property?.gallery?.length]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-canvas pt-24 flex items-center justify-center">
+        <div className="text-muted text-sm uppercase tracking-[0.2em]">Se încarcă...</div>
+      </div>
+    );
+  }
 
   if (!property) return notFound();
 
   const title = lang === 'en' && property.title_en ? property.title_en : property.title;
   const description = lang === 'en' && property.description_en ? property.description_en : property.description;
-  const similar = DEMO_PROPERTIES.filter(p => p.id !== property.id && p.type === property.type).slice(0, 3);
 
   const features = [
     { icon: Maximize2, label: t('feat.area'), value: `${property.area} m²` },
@@ -59,15 +98,28 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
             <ArrowLeft size={14} /> {t('nav.properties')}
           </Link>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 gap-2 h-[70vh]">
-            <button onClick={() => setLightbox(0)} className="md:col-span-2 md:row-span-2 relative overflow-hidden group">
-              <Image src={property.cover_image} alt={title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" priority sizes="50vw" />
+          <div className="grid grid-cols-2 md:grid-cols-4 md:grid-rows-2 gap-2 md:gap-3 h-[50vh] md:h-[75vh]">
+            <button onClick={() => setLightbox(0)} className="col-span-2 row-span-2 relative overflow-hidden group">
+              <Image src={property.cover_image} alt={title} fill className="object-cover transition-transform duration-700 group-hover:scale-105" priority sizes="60vw" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
             {property.gallery.slice(0, 4).map((img, i) => (
-              <button key={i} onClick={() => setLightbox(i + 1)} className="relative overflow-hidden hidden md:block group">
-                <Image src={img} alt={`${title} ${i}`} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="25vw" />
+              <button key={i} onClick={() => setLightbox(i + 1)} className="relative overflow-hidden group hidden md:block">
+                <Image src={img} alt={`${title} ${i + 1}`} fill className="object-cover transition-transform duration-700 group-hover:scale-105" sizes="20vw" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
               </button>
             ))}
+            {property.gallery.length > 4 && (
+              <button onClick={() => setLightbox(4)} className="relative overflow-hidden group hidden md:flex items-center justify-center bg-black/60 hover:bg-black/40 transition-colors">
+                <div className="text-center text-white">
+                  <div className="text-2xl font-display">+{property.gallery.length - 4}</div>
+                  <div className="text-[10px] uppercase tracking-[0.2em] mt-1">Foto</div>
+                </div>
+              </button>
+            )}
+          </div>
+          <div className="mt-3 text-[11px] text-muted uppercase tracking-[0.2em]">
+            {property.gallery.length + 1} fotografii
           </div>
         </div>
       </section>
@@ -79,6 +131,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
             <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.24em] text-muted">
               <MapPin size={12} /> {property.location}
               <span className="text-gold ml-2">• {t(`status.${property.status}`)}</span>
+              <span className="text-gold ml-2">• {t(`listing_type.${property.listing_type}`)}</span>
             </div>
             <h1 className="font-display text-4xl md:text-6xl text-ink mt-4 text-balance leading-[1.05]">{title}</h1>
             <div className="mt-6 font-display text-3xl md:text-4xl text-gold">{formatPrice(property.price, property.currency, lang)}</div>
@@ -112,16 +165,20 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
               <p className="text-sm text-muted mt-3">Programează o vizionare sau află mai multe detalii.</p>
 
               <div className="mt-6 space-y-3">
-                <a href="tel:+40787860899" className="btn-gold w-full"><Phone size={14} /> {t('detail.call')}</a>
-                <a href={`https://wa.me/40787860899?text=${encodeURIComponent('Bună ziua, sunt interesat de: ' + title)}`} target="_blank" rel="noopener" className="btn-outline w-full">{t('detail.whatsapp')}</a>
+                <a href="tel:+40743864000" className="btn-gold w-full"><Phone size={14} /> Gabriel — +40 743 864 000</a>
+                <a href="https://wa.me/40743864000?text=${encodeURIComponent('Bună ziua, sunt interesat de: ' + title)}" target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Gabriel</a>
+                <a href="tel:+40787860899" className="btn-outline w-full">Alex — +40 787 860 899</a>
+                <a href="https://wa.me/40787860899?text=${encodeURIComponent('Bună ziua, sunt interesat de: ' + title)}" target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Alex</a>
                 <button onClick={share} className="w-full text-[13px] uppercase tracking-[0.18em] text-muted hover:text-ink inline-flex items-center justify-center gap-2 py-3">
                   <Share2 size={14} /> {t('detail.share')}
                 </button>
               </div>
 
               <div className="mt-8 pt-6 border-t border-line text-sm text-muted space-y-2">
-                <div>+40 787 860 899</div>
-                <div>+40 743 864 000</div>
+                <div><a href="tel:+40743864000" className="hover:text-gold">Gabriel — +40 743 864 000</a></div>
+                <div><a href="https://wa.me/40743864000" target="_blank" rel="noopener" className="hover:text-gold">WhatsApp Gabriel</a></div>
+                <div><a href="tel:+40787860899" className="hover:text-gold">Alex — +40 787 860 899</a></div>
+                <div><a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="hover:text-gold">WhatsApp Alex</a></div>
                 <div>Piața Unirii nr. 2, Iași</div>
               </div>
             </div>
@@ -144,16 +201,59 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
 
       {/* LIGHTBOX */}
       {lightbox !== null && (
-        <div className="fixed inset-0 z-[70] bg-black/95 flex items-center justify-center" onClick={() => setLightbox(null)}>
-          <button className="absolute top-6 right-6 text-white/70 hover:text-white" onClick={() => setLightbox(null)}><X size={28} /></button>
-          <div className="relative w-[92vw] h-[85vh]">
-            <Image
-              src={lightbox === 0 ? property.cover_image : property.gallery[lightbox - 1]}
-              alt={title}
-              fill
-              className="object-contain"
-              sizes="92vw"
-            />
+        <div className="fixed inset-0 z-[70] bg-black/95 flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setLightbox(null); }}>
+          <div className="flex items-center justify-between px-4 md:px-8 py-4">
+            <div className="text-white/60 text-[11px] uppercase tracking-[0.2em]">
+              {lightbox + 1} / {property.gallery.length + 1}
+            </div>
+            <button onClick={() => setLightbox(null)} className="text-white/70 hover:text-white"><X size={28} /></button>
+          </div>
+
+          <div className="flex-1 flex items-center justify-center px-4 relative min-h-0">
+            <button
+              onClick={() => setLightbox((lightbox - 1 + property.gallery.length + 1) % (property.gallery.length + 1))}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3 transition-colors"
+            >
+              <ChevronLeft size={28} />
+            </button>
+
+            <div className="relative w-full max-w-5xl aspect-[16/10]">
+              <Image
+                src={lightbox === 0 ? property.cover_image : property.gallery[lightbox - 1]}
+                alt={title}
+                fill
+                className="object-contain"
+                sizes="100vw"
+                priority
+              />
+            </div>
+
+            <button
+              onClick={() => setLightbox((lightbox + 1) % (property.gallery.length + 1))}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full p-3 transition-colors"
+            >
+              <ChevronRight size={28} />
+            </button>
+          </div>
+
+          <div className="px-4 md:px-8 py-4">
+            <div className="flex gap-2 md:gap-3 overflow-x-auto no-scrollbar justify-center">
+              <button
+                onClick={() => setLightbox(0)}
+                className={`relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden border-2 transition-colors ${lightbox === 0 ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
+              >
+                <Image src={property.cover_image} alt="" fill className="object-cover" sizes="80px" />
+              </button>
+              {property.gallery.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => setLightbox(i + 1)}
+                  className={`relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0 overflow-hidden border-2 transition-colors ${lightbox === i + 1 ? 'border-white' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                >
+                  <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

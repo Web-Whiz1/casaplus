@@ -3,20 +3,25 @@ import { useEffect, useMemo, useState } from 'react';
 import { PropertyCard } from '@/components/site/PropertyCard';
 import { useLang } from '@/lib/i18n';
 import { Property, PropertyType } from '@/lib/types';
-import { DEMO_PROPERTIES } from '@/lib/demo-properties';
 
 type Sort = 'new' | 'priceAsc' | 'priceDesc';
 
 export default function PropertiesPage() {
   const { t } = useLang();
-  const [properties, setProperties] = useState<Property[]>(DEMO_PROPERTIES);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [status, setStatus] = useState('');
   const [filter, setFilter] = useState<'all' | PropertyType>('all');
   const [sort, setSort] = useState<Sort>('new');
 
   useEffect(() => {
     fetch('/api/properties').then(r => r.json()).then(d => {
       if (d?.data?.length) setProperties(d.data);
-    }).catch(() => {});
+      else if (d?.error) setStatus('Eroare: ' + d.error);
+      else setStatus('Nicio proprietate găsită.');
+    }).catch(err => {
+      setStatus('Eroare la încărcarea proprietăților.');
+      console.error(err);
+    });
   }, []);
 
   const filters: Array<{ k: 'all' | PropertyType; label: string }> = [
@@ -69,6 +74,9 @@ export default function PropertiesPage() {
 
       <section className="py-16 md:py-24">
         <div className="container-lux">
+          {status && !filtered.length && (
+            <div className="py-12 text-center text-gold text-sm uppercase tracking-[0.2em]">{status}</div>
+          )}
           {filtered.length === 0 ? (
             <div className="py-32 text-center text-muted">{t('listing.empty')}</div>
           ) : (

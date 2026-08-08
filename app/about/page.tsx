@@ -41,9 +41,9 @@ export default function AboutPage() {
         <div className="container-lux grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div>
             <div className="eyebrow mb-4">CASAPLUS</div>
-            <h2 className="section-title">De 12 ani, aceeași grijă pentru detaliu.</h2>
+            <h2 className="section-title">{t('about.cta.title')}</h2>
             <div className="mt-8 space-y-3 text-muted">
-              <div className="text-ink font-medium">CasaPlus — agenție imobiliară pentru locuințe premium și investiții în Iași.</div>
+              <div className="text-ink font-medium">{t('about.cta.subtitle')}</div>
             </div>
             <div className="mt-10">
               <Link href="/contact" className="btn-outline">{t('nav.contact')} <ArrowRight size={16} /></Link>

@@ -6,11 +6,10 @@ import { ArrowRight, Phone } from 'lucide-react';
 import { useLang } from '@/lib/i18n';
 import { PropertyCard } from '@/components/site/PropertyCard';
 import { Property } from '@/lib/types';
-import { DEMO_PROPERTIES } from '@/lib/demo-properties';
 
 export default function HomePage() {
   const { t } = useLang();
-  const [properties, setProperties] = useState<Property[]>(DEMO_PROPERTIES.filter(p => p.featured).slice(0, 4));
+  const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
     fetch('/api/properties?featured=1')
@@ -23,7 +22,6 @@ export default function HomePage() {
     { n: '2013', l: t('stats.year') },
     { n: '1000+', l: t('stats.clients') },
     { n: '500+', l: t('stats.properties') },
-    { n: '98%', l: t('stats.satisfied') },
   ];
 
   return (
@@ -156,8 +154,10 @@ export default function HomePage() {
           <h2 className="font-display text-4xl md:text-6xl text-white text-balance max-w-3xl mx-auto leading-[1.03]">{t('cta.contact.title')}</h2>
           <p className="mt-6 text-white/70 text-lg max-w-xl mx-auto">{t('cta.contact.body')}</p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a href="tel:+40787860899" className="btn-gold"><Phone size={16} /> {t('cta.contact.call')}</a>
-            <a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="btn-ghost">{t('cta.contact.wa')}</a>
+            <a href="tel:+40743864000" className="btn-gold"><Phone size={16} /> Gabriel — +40 743 864 000</a>
+            <a href="https://wa.me/40743864000" target="_blank" rel="noopener" className="btn-ghost">WhatsApp Gabriel</a>
+            <a href="tel:+40787860899" className="btn-gold"><Phone size={16} /> Alex — +40 787 860 899</a>
+            <a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="btn-ghost">WhatsApp Alex</a>
           </div>
         </div>
       </section>

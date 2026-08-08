@@ -1,8 +1,6 @@
 import { supabase } from './supabase';
 import { Property } from './types';
-import { DEMO_PROPERTIES } from './demo-properties';
 
-// Try to fetch from Supabase; fall back to demo data if table missing/empty.
 export async function getAllProperties(): Promise<Property[]> {
   try {
     const { data, error } = await supabase
@@ -10,11 +8,15 @@ export async function getAllProperties(): Promise<Property[]> {
       .select('*')
       .eq('published', true)
       .order('created_at', { ascending: false });
-    if (error) throw error;
-    if (!data || data.length === 0) return DEMO_PROPERTIES;
+    if (error) {
+      console.error('getAllProperties error', error);
+      throw error;
+    }
+    if (!data || data.length === 0) return [];
     return data as Property[];
-  } catch {
-    return DEMO_PROPERTIES;
+  } catch (e) {
+    console.error('getAllProperties failed', e);
+    return [];
   }
 }
 
