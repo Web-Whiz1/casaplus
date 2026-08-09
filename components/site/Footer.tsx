@@ -7,7 +7,7 @@ export function Footer() {
   const { t } = useLang();
 
   return (
-    <footer className="bg-ink text-white/80 mt-32">
+    <footer className="bg-ink text-white/80">
       <div className="container-lux py-20 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div>
           <div className="font-display text-3xl text-white">Casa<span className="text-gold">Plus</span></div>
@@ -30,8 +30,7 @@ export function Footer() {
         <div>
           <h4 className="text-[11px] uppercase tracking-[0.28em] text-gold mb-6">{t('footer.contact')}</h4>
           <ul className="space-y-3 text-sm text-white/70">
-            <li className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 text-gold" /><span>Strada Eternitate nr. 30<br/>Iași, România</span></li>
-            <li className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 text-gold" /><span>Piața Unirii nr. 2, Iași</span></li>
+            <li className="flex items-start gap-2"><MapPin size={16} className="mt-0.5 text-gold" /><span>Bulevardul Ștefan cel Mare și Sfânt 4<br/>Iași, România</span></li>
             <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40743864000" className="hover:text-gold">Gabriel — +40 743 864 000</a></li>
             <li className="flex items-center gap-2"><Phone size={16} className="text-gold" /><a href="tel:+40787860899" className="hover:text-gold">Alex — +40 787 860 899</a></li>
           </ul>
@@ -41,13 +40,16 @@ export function Footer() {
           <h4 className="text-[11px] uppercase tracking-[0.28em] text-gold mb-6">{t('footer.legal')}</h4>
           <ul className="space-y-3 text-sm text-white/70">
             <li><Link href="/legal/privacy" className="hover:text-gold transition-colors">{t('legal.privacy')}</Link></li>
-            <li><Link href="/legal/cookies" className="hover:text-gold transition-colors">{t('legal.cookies')}</Link></li>
             <li><Link href="/legal/terms" className="hover:text-gold transition-colors">{t('legal.terms')}</Link></li>
             <li><Link href="/legal/gdpr" className="hover:text-gold transition-colors">{t('legal.gdpr')}</Link></li>
           </ul>
-          <div className="flex items-center gap-4 mt-6">
-            <a href="https://anpc.ro/" target="_blank" rel="noopener" className="text-[10px] uppercase tracking-[0.2em] px-3 py-2 border border-white/20 hover:border-gold hover:text-gold transition-colors">ANPC</a>
-            <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener" className="text-[10px] uppercase tracking-[0.2em] px-3 py-2 border border-white/20 hover:border-gold hover:text-gold transition-colors">SOL</a>
+          <div className="flex flex-col gap-2 mt-6">
+            <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="nofollow noopener" className="block">
+              <img src="https://layouth.ro/wp-content/uploads/resurse-publice/anpc-sal-mare.png" alt="Soluționarea Alternativă a Litigiilor" title="Soluționarea Alternativă a Litigiilor" className="w-[250px] h-auto object-contain" />
+            </a>
+            <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="nofollow noopener" className="block">
+              <img src="https://layouth.ro/wp-content/uploads/resurse-publice/anpc-sol-mare.png" alt="Soluționarea Online a Litigiilor" title="Soluționarea Online a Litigiilor" className="w-[250px] h-auto object-contain" />
+            </a>
           </div>
         </div>
       </div>

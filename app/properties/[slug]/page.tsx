@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { MapPin, Maximize2, BedDouble, Bath, Building2, Calendar, Flame, Car, Trees, Package, Phone, Share2, ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLang, formatPrice } from '@/lib/i18n';
+import { isValidTranslation } from '@/lib/translation-utils';
 import { PropertyCard } from '@/components/site/PropertyCard';
 import { Property } from '@/lib/types';
 import { toast } from 'sonner';
@@ -64,8 +65,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
 
   if (!property) return notFound();
 
-  const title = lang === 'en' && property.title_en ? property.title_en : property.title;
-  const description = lang === 'en' && property.description_en ? property.description_en : property.description;
+  const title = lang === 'en' && isValidTranslation(property.title_en) ? property.title_en : property.title;
+  const description = lang === 'en' && isValidTranslation(property.description_en) ? property.description_en : property.description;
 
   const features = [
     { icon: Maximize2, label: t('feat.area'), value: `${property.area} m²` },
@@ -161,14 +162,14 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
           <aside className="lg:sticky lg:top-32 lg:self-start">
             <div className="bg-white border border-line p-8">
               <div className="text-[11px] uppercase tracking-[0.24em] text-muted">CasaPlus Iași</div>
-              <div className="font-display text-2xl mt-2 text-ink">Vorbește cu un consultant</div>
-              <p className="text-sm text-muted mt-3">Programează o vizionare sau află mai multe detalii.</p>
+              <div className="font-display text-2xl mt-2 text-ink">{t('detail.cta.title')}</div>
+              <p className="text-sm text-muted mt-3">{t('detail.cta.body')}</p>
 
               <div className="mt-6 space-y-3">
                 <a href="tel:+40743864000" className="btn-gold w-full"><Phone size={14} /> Gabriel — +40 743 864 000</a>
-                <a href="https://wa.me/40743864000?text=${encodeURIComponent('Bună ziua, sunt interesat de: ' + title)}" target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Gabriel</a>
+                <a href={`https://wa.me/40743864000?text=${encodeURIComponent(t('detail.whatsapp.message') + title)}`} target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Gabriel</a>
                 <a href="tel:+40787860899" className="btn-outline w-full">Alex — +40 787 860 899</a>
-                <a href="https://wa.me/40787860899?text=${encodeURIComponent('Bună ziua, sunt interesat de: ' + title)}" target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Alex</a>
+                <a href={`https://wa.me/40787860899?text=${encodeURIComponent(t('detail.whatsapp.message') + title)}`} target="_blank" rel="noopener" className="btn-outline w-full">WhatsApp Alex</a>
                 <button onClick={share} className="w-full text-[13px] uppercase tracking-[0.18em] text-muted hover:text-ink inline-flex items-center justify-center gap-2 py-3">
                   <Share2 size={14} /> {t('detail.share')}
                 </button>
@@ -179,7 +180,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ slug:
                 <div><a href="https://wa.me/40743864000" target="_blank" rel="noopener" className="hover:text-gold">WhatsApp Gabriel</a></div>
                 <div><a href="tel:+40787860899" className="hover:text-gold">Alex — +40 787 860 899</a></div>
                 <div><a href="https://wa.me/40787860899" target="_blank" rel="noopener" className="hover:text-gold">WhatsApp Alex</a></div>
-                <div>Piața Unirii nr. 2, Iași</div>
+                <div>{t('detail.address')}</div>
               </div>
             </div>
           </aside>

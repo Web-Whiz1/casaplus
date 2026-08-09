@@ -123,6 +123,8 @@ export default function AdminPage() {
 
     const payload = {
       ...draft,
+      title_en: '',
+      description_en: '',
       id: draft.id || undefined,
       slug: draft.slug || (draft.title ? draft.title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'property') || 'property',
       price: Number(draft.price || 0),
@@ -145,7 +147,8 @@ export default function AdminPage() {
     if (!res.ok) {
       const json = await res.json().catch(() => ({}));
       const action = isUpdate ? 'Update' : 'Create';
-      setStatus(action + ' error: ' + (json?.error || json?.details || res.statusText));
+      setStatus(action + ' error: ' + (json?.details || json?.error || res.statusText));
+      console.error(action + ' error:', json);
       return;
     }
 

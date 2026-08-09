@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Property } from '@/lib/types';
 import { useLang, formatPrice } from '@/lib/i18n';
+import { isValidTranslation } from '@/lib/translation-utils';
 import { MapPin, Maximize2, BedDouble } from 'lucide-react';
 
 const statusStyles: Record<string, string> = {
@@ -20,7 +21,7 @@ const listingTypeStyles: Record<string, string> = {
 
 export function PropertyCard({ property, priority = false }: { property: Property; priority?: boolean }) {
   const { t, lang } = useLang();
-  const title = lang === 'en' && property.title_en ? property.title_en : property.title;
+  const title = lang === 'en' && isValidTranslation(property.title_en) ? property.title_en : property.title;
 
   return (
     <Link href={`/properties/${property.slug}`} className="group block h-full">

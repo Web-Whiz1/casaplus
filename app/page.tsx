@@ -12,9 +12,9 @@ export default function HomePage() {
   const [properties, setProperties] = useState<Property[]>([]);
 
   useEffect(() => {
-    fetch('/api/properties?featured=1')
+    fetch('/api/properties?latest=1&limit=3')
       .then(r => r.json())
-      .then(d => { if (d?.data?.length) setProperties(d.data.slice(0, 4)); })
+      .then(d => { if (d?.data?.length) setProperties(d.data); })
       .catch(() => {});
   }, []);
 
@@ -22,6 +22,7 @@ export default function HomePage() {
     { n: '2013', l: t('stats.year') },
     { n: '1000+', l: t('stats.clients') },
     { n: '500+', l: t('stats.properties') },
+    { n: '100%', l: t('stats.satisfied') },
   ];
 
   return (
@@ -62,18 +63,23 @@ export default function HomePage() {
       {/* STATS */}
       <section className="bg-canvas py-24 md:py-32">
         <div className="container-lux">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-12 gap-x-8 border-y border-line py-16">
+          <div className="text-center mb-16">
+            <div className="eyebrow mb-4">CasaPlus</div>
+            <h2 className="section-title">{t('stats.sectionTitle')}</h2>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-y-16 gap-x-8 border-y border-line">
             {stats.map((s, i) => (
-              <div key={i} className="text-center">
-                <div className="font-display text-5xl md:text-6xl text-ink leading-none">{s.n}</div>
-                <div className="mt-3 text-[11px] uppercase tracking-[0.24em] text-muted">{s.l}</div>
+              <div key={i} className="group relative py-12 flex flex-col items-center text-center">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-8 bg-gold/0 group-hover:bg-gold/60 transition-colors duration-500" />
+                <div className="font-display text-5xl md:text-6xl text-ink leading-none tracking-tight">{s.n}</div>
+                <div className="mt-4 text-[11px] uppercase tracking-[0.3em] text-muted">{s.l}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FEATURED PROPERTIES */}
+      {/* LATEST PROPERTIES */}
       <section className="section-shell">
         <div className="container-lux">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
@@ -87,8 +93,8 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-16">
-            {properties.slice(0, 4).map((p, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-16">
+            {properties.slice(0, 3).map((p, i) => (
               <PropertyCard key={p.id} property={p} priority={i < 2} />
             ))}
           </div>

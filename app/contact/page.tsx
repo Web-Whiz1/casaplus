@@ -5,7 +5,7 @@ import { useLang } from '@/lib/i18n';
 export default function ContactPage() {
   const { t } = useLang();
 
-  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=Pia%C8%9Ba+Unirii+2+Ia%C8%99i';
+  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=Bulevardul+Stefan+cel+Mare+si+Sfant+4+Iasi';
 
   return (
     <>
@@ -22,9 +22,7 @@ export default function ContactPage() {
           <div className="border border-line bg-white p-8">
             <div className="flex items-center gap-2 text-gold mb-4"><MapPin size={18} /><span className="eyebrow">{t('contact.address')}</span></div>
             <div className="text-ink leading-relaxed">
-              <div>Strada Eternitate nr. 30</div>
-              <div>Iași, România</div>
-              <div className="mt-4">Birou: Piața Unirii nr. 2</div>
+              <div>Bulevardul Ștefan cel Mare și Sfânt 4</div>
               <div>Iași, România</div>
             </div>
           </div>
@@ -71,11 +69,11 @@ export default function ContactPage() {
         <div className="container-lux">
           <div className="aspect-[21/9] w-full border border-line overflow-hidden shadow-soft">
             <iframe
-              src="https://www.google.com/maps?q=Pia%C8%9Ba+Unirii+2+Ia%C8%99i&output=embed"
+              src="https://www.google.com/maps?q=Bulevardul+Stefan+cel+Mare+si+Sfant+4+Iasi&output=embed"
               className="w-full h-full"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="CasaPlus — Piața Unirii 2, Iași"
+              title="CasaPlus — Bulevardul Stefan cel Mare si Sfant 4, Iasi"
             />
           </div>
         </div>

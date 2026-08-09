@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabase, supabaseAdmin } from '@/lib/supabase';
 import { translateRoToEn } from '@/lib/translate';
+import { isBadTranslation } from '@/lib/translation-utils';
 
 function validateBody(body = {}) {
   const errors = [];
@@ -11,12 +12,12 @@ function validateBody(body = {}) {
   if (errors.length) throw new Error(errors.join(', '));
 }
 
-function normalizeBody(body = {}) {
+async function normalizeBody(body = {}) {
   const now = new Date().toISOString();
   validateBody(body);
   const payload = {
     id: body.id || cryptoId(),
-    slug: body.slug || slugify(body.title || 'property'),
+    slug: await uniqueSlug(body.slug || slugify(body.title || 'property'), body.id),
     title: body.title || 'CasaPlus property',
     title_en: body.title_en || '',
     description: body.description || '',
@@ -49,13 +50,66 @@ function normalizeBody(body = {}) {
 }
 
 async function enrichWithTranslations(payload) {
-  const [titleEn, descEn] = await Promise.all([
-    payload.title_en ? Promise.resolve(payload.title_en) : translateRoToEn(payload.title),
-    payload.description_en ? Promise.resolve(payload.description_en) : translateRoToEn(payload.description),
-  ]);
+  try {
+    const [titleEn, descEn] = await Promise.all([
+      payload.title_en && isValidTranslation(payload.title_en)
+        ? Promise.resolve(payload.title_en)
+        : translateRoToEn(payload.title).then(r => {
+            console.log('Translated title:', payload.title, '->', r);
+            return r;
+          }),
+      payload.description_en && isValidTranslation(payload.description_en)
+        ? Promise.resolve(payload.description_en)
+        : translateRoToEn(payload.description).then(r => {
+            console.log('Translated description:', payload.description, '->', r);
+            return r;
+          }),
+    ]);
 
-  return { ...payload, title_en: titleEn, description_en: descEn };
+    return {
+      ...payload,
+      title_en: isValidTranslation(titleEn) && titleEn.toLowerCase() !== payload.title.toLowerCase() ? titleEn : '',
+      description_en: isValidTranslation(descEn) && descEn.toLowerCase() !== payload.description.toLowerCase() ? descEn : '',
+    };
+  } catch (error) {
+    console.error('Translation enrichment failed:', error);
+    return {
+      ...payload,
+      title_en: '',
+      description_en: '',
+    };
+  }
 }
+
+function isValidTranslation(text) {
+  if (!text || !text.trim()) return false;
+  const lower = text.toLowerCase().trim();
+  if (lower.length < 3) return false;
+  if (/^(enter|type|select|choose|search|click|please|keyword)\b/i.test(lower)) return false;
+  if (lower.includes('enter keyword')) return false;
+  return true;
+}
+
+async function checkDbSchema() {
+  try {
+    const { error } = await supabaseAdmin
+      .from('properties')
+      .select('listing_type, title_en, description_en')
+      .limit(1);
+
+    if (error) {
+      console.error('Database schema check failed:', error.message);
+      console.error('Run these SQL commands in Supabase Dashboard -> SQL Editor:');
+      console.error("ALTER TABLE properties ADD COLUMN IF NOT EXISTS listing_type text DEFAULT 'vanzare';");
+      console.error("ALTER TABLE properties ADD COLUMN IF NOT EXISTS title_en text;");
+      console.error("ALTER TABLE properties ADD COLUMN IF NOT EXISTS description_en text;");
+    }
+  } catch (e) {
+    console.error('Schema check error:', e);
+  }
+}
+
+checkDbSchema();
 
 function cryptoId() {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -70,6 +124,28 @@ function slugify(value) {
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'property';
+}
+
+async function uniqueSlug(baseSlug, excludeId) {
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (true) {
+    let query = supabaseAdmin.from('properties').select('slug').eq('slug', slug);
+    if (excludeId) {
+      query = query.not('id', 'neq', excludeId);
+    }
+    const { data } = await query.limit(1);
+
+    if (!data || data.length === 0) {
+      break;
+    }
+
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  return slug;
 }
 
 async function fetchAll() {
@@ -100,6 +176,9 @@ export async function GET(request, { params }) {
       if (url.searchParams.get('featured') === '1') data = data.filter(p => p.featured);
       const type = url.searchParams.get('type');
       if (type) data = data.filter(p => p.type === type);
+      if (url.searchParams.get('latest') === '1') data = [...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const limit = Number(url.searchParams.get('limit') || '0');
+      if (limit > 0) data = data.slice(0, limit);
       return NextResponse.json({ data });
     }
 
@@ -126,7 +205,7 @@ export async function GET(request, { params }) {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const payload = normalizeBody(body);
+    const payload = await normalizeBody(body);
     const enriched = await enrichWithTranslations(payload);
 
     const { data, error } = await supabaseAdmin
@@ -135,11 +214,15 @@ export async function POST(request) {
       .select('*')
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw error;
+    }
 
     return NextResponse.json({ data, ok: true }, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: 'Create failed', details: String(error) }, { status: 500 });
+    console.error('Create failed:', error);
+    return NextResponse.json({ error: 'Create failed', details: error.message || String(error), stack: error.stack }, { status: 500 });
   }
 }
 
@@ -148,7 +231,7 @@ export async function PUT(request) {
     const body = await request.json();
     if (!body?.id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
-    const payload = normalizeBody(body);
+    const payload = await normalizeBody(body);
     const enriched = await enrichWithTranslations(payload);
 
     const { data, error } = await supabaseAdmin
@@ -172,12 +255,58 @@ export async function DELETE(request) {
     const id = body?.id;
     if (!id) return NextResponse.json({ error: 'missing id' }, { status: 400 });
 
+    let listing = null;
+    try {
+      const { data } = await supabaseAdmin.from('properties').select('cover_image, gallery').eq('id', id).single();
+      listing = data;
+    } catch {}
+
     const { error } = await supabaseAdmin
       .from('properties')
       .delete()
       .eq('id', id);
 
     if (error) throw error;
+
+    if (listing) {
+      const imagekitPublicKey = process.env.IMAGEKIT_PUBLIC_KEY;
+      const imagekitPrivateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+      const imagekitUrl = process.env.IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_IMAGEKIT_URL;
+
+      if (imagekitPublicKey && imagekitPrivateKey && imagekitUrl) {
+        const hostname = new URL(imagekitUrl).hostname;
+        const paths = [];
+
+        const addPath = (url) => {
+          if (!url) return;
+          try {
+            const u = new URL(url);
+            if (u.hostname === hostname) {
+              paths.push(u.pathname);
+            }
+          } catch {}
+        };
+
+        addPath(listing.cover_image);
+        (listing.gallery || []).forEach(addPath);
+
+        if (paths.length > 0) {
+          try {
+            const auth = btoa(`${imagekitPublicKey}:${imagekitPrivateKey}`);
+            await fetch('https://api.imagekit.io/v1/files/bulk/delete', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ filePaths: paths }),
+            });
+          } catch (e) {
+            console.error('ImageKit delete failed:', e);
+          }
+        }
+      }
+    }
 
     return NextResponse.json({ ok: true });
   } catch (error) {

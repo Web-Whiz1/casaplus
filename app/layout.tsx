@@ -10,13 +10,16 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'sw
 
 export const metadata = {
   title: {
-    default: 'CasaPlus — Plus de Confort, Plus de Calitate',
-    template: '%s — CasaPlus',
+    default: 'CasaPlus',
+    template: '%s',
   },
   description: 'Agenție imobiliară premium dedicată exclusiv Iașului și împrejurimilor. Proprietăți atent selecționate.',
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://casaplus.ro'),
+  icons: {
+    icon: '/favicon.svg',
+  },
   openGraph: {
-    title: 'CasaPlus — Real Estate Iași',
+    title: 'CasaPlus',
     description: 'Proprietăți premium în Iași și împrejurimi.',
     type: 'website',
     locale: 'ro_RO',
