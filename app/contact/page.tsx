@@ -1,5 +1,5 @@
 'use client';
-import { MapPin, Phone, Clock, Instagram, ExternalLink } from 'lucide-react';
+import { MapPin, Phone, Clock, Instagram, Facebook, ExternalLink, Mail } from 'lucide-react';
 import { useLang } from '@/lib/i18n';
 
 export default function ContactPage() {
@@ -18,7 +18,7 @@ export default function ContactPage() {
       </section>
 
       <section className="py-16 md:py-24 border-t border-line">
-        <div className="container-lux grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
+        <div className="container-lux grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-16">
           <div className="border border-line bg-white p-8">
             <div className="flex items-center gap-2 text-gold mb-4"><MapPin size={18} /><span className="eyebrow">{t('contact.address')}</span></div>
             <div className="text-ink leading-relaxed">
@@ -37,6 +37,12 @@ export default function ContactPage() {
                 <a href="tel:+40787860899" className="block hover:text-gold font-medium">+40 787 860 899</a>
                 <span className="text-[11px] text-muted uppercase tracking-[0.2em]">Alex</span>
               </div>
+            </div>
+          </div>
+          <div className="border border-line bg-white p-8">
+            <div className="flex items-center gap-2 text-gold mb-4"><Mail size={18} /><span className="eyebrow">Email</span></div>
+            <div className="text-ink leading-relaxed">
+              <a href="mailto:casaplusiasi@gmail.com" className="block hover:text-gold font-medium">casaplusiasi@gmail.com</a>
             </div>
           </div>
           <div className="border border-line bg-white p-8">
@@ -62,6 +68,12 @@ export default function ContactPage() {
         <div className="container-lux flex flex-wrap gap-4 mt-8">
           <a href={mapsUrl} target="_blank" rel="noopener" className="btn-outline"><MapPin size={16} /> {t('contact.openMaps')}</a>
           <a href="https://www.instagram.com/casaplusagentie/" target="_blank" rel="noopener" className="btn-outline"><Instagram size={16} /> Instagram</a>
+          <a href="https://www.tiktok.com/@casaplus35" target="_blank" rel="noopener" className="btn-outline">
+            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tiktok.svg" alt="TikTok" width={16} height={16} className="opacity-90" />
+            TikTok
+          </a>
+          <a href="https://www.facebook.com/casaplusiasi" target="_blank" rel="noopener" className="btn-outline"><Facebook size={16} /> Facebook</a>
+          <a href="mailto:casaplusiasi@gmail.com" className="btn-outline"><Mail size={16} /> Email</a>
         </div>
       </section>
 
